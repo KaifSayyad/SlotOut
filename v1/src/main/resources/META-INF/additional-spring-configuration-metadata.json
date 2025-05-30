@@ -1,0 +1,42 @@
+{"properties": [
+  {
+    "name": "redis.host",
+    "type": "java.lang.String",
+    "description": "A description for 'redis.host'"
+  },
+  {
+    "name": "redis.port",
+    "type": "java.lang.String",
+    "description": "A description for 'redis.port'"
+  },
+  {
+    "name": "redis.password",
+    "type": "java.lang.String",
+    "description": "A description for 'redis.password'"
+  },
+  {
+    "name": "twilio.account.sid",
+    "type": "java.lang.String",
+    "description": "A description for 'twilio.account.sid'"
+  },
+  {
+    "name": "twilio.auth.token",
+    "type": "java.lang.String",
+    "description": "A description for 'twilio.auth.token'"
+  },
+  {
+    "name": "twilio.verify.sid",
+    "type": "java.lang.String",
+    "description": "A description for 'twilio.verify.sid'"
+  },
+  {
+    "name": "personal.emailID",
+    "type": "java.lang.String",
+    "description": "A description for 'personal.emailID'"
+  },
+  {
+    "name": "personal.emailID",
+    "type": "java.lang.String",
+    "description": "A description for 'personal.emailID'"
+  }
+]}
