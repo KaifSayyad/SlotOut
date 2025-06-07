@@ -1,0 +1,121 @@
+Booking
+﻿
+
+POST
+Create Booking (Step 1)
+{{url}}/api/bookings
+﻿
+
+No Authentication Required (Public Endpoint)
+
+Body
+raw (json)
+View More
+json
+{
+  "tenantId": 1,
+  "serviceId": 3,
+  "slotId": 12,
+  "name": "John Doe",
+  "email": "john@example.com",
+  "phone": "+1234567890"
+}
+
+/*
+Logic after this endpoint is hit.
+    1. Validates tenant, service, and time slot exist.
+    2. Checks if the time slot is not already booked.
+    3. Sends OTP to customer's email using OTP service.
+    4. Creates booking in pending state (not confirmed yet).
+    5. Returns booking ID and success message asking for OTP verification.
+    
+Response on Success:
+"OTP sent to your email. Please verify to confirm booking"
+
+Response on Error:
+"Tenant not found" or "Service not found" or "Time slot not found" or "Time slot is already booked"
+*/
+POST
+Confirm Booking (Step 2)
+{{url}}/api/bookings/{booking_id}/confirm
+﻿
+
+No Authentication Required (Public Endpoint)
+
+Body
+raw (json)
+View More
+json
+{
+  "email": "john@example.com",
+  "phone": null,
+  "otp": "123456"
+}
+
+/*
+Logic after this endpoint is hit.
+    1. Validates the booking exists.
+    2. Verifies the OTP using OTP service.
+    3. If OTP is valid, marks the time slot as booked (isBooked=true).
+    4. Finalizes the booking in the database.
+    5. Can schedule notifications (future enhancement).
+    
+Response on Success:
+{"message": "Booking confirmed successfully"}
+
+Response on Error:
+{"error": "Booking not found"} or {"error": "Invalid or expired OTP"}
+*/
+GET
+Get Bookings for Tenant (Admin)
+{{url}}/api/tenants/{tenant_id}/bookings
+﻿
+
+Authentication Required: Bearer Token
+
+Body
+raw (json)
+json
+/*
+Logic after this endpoint is hit.
+    1. Validates the tenant exists and user is authenticated.
+    2. Returns all bookings for this tenant_id.
+    3. Includes booking details, customer info, and time slot info.
+    
+Response on Success:
+[
+  {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "phone": "+1234567890",
+    "createdAt": "2025-05-27T09:00:00",
+    "service": {...},
+    "slot": {...},
+    "tenant": {...}
+  }
+]
+*/
+DELETE
+Cancel a Booking
+{{url}}/api/bookings/{booking_id}
+﻿
+
+Authentication Required: Bearer Token (Admin/Tenant only)
+
+Body
+raw (json)
+json
+/*
+Logic after this endpoint is hit.
+    1. Check if this booking_id is present in the database.
+    2. If yes, mark the associated time slot as available (isBooked=false).
+    3. Delete this booking from the database.
+    4. Return appropriate response.
+    
+Response on Success:
+{"message": "Booking cancelled successfully"}
+
+Response on Error:
+{"error": "Booking not found"} or {"error": "Failed to cancel booking: [reason]"}
+*/

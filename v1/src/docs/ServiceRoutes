@@ -1,0 +1,117 @@
+Service
+﻿
+
+POST
+Create Service
+{{url}}/api/tenants/{tenant_id}/services
+﻿
+
+Authentication Required: Bearer Token
+
+Body
+raw (json)
+json
+{
+  "name": "Haircut",
+  "description": "Men's Haircut",
+  "duration": "00:30:00",  // Format: HH:MM:SS or PT30M (ISO 8601)
+  "price": 25.00
+}
+
+/*
+Logic after this endpoint is hit.
+    1. Validates the tenant exists and is authenticated.
+    2. Parses duration in HH:MM:SS or ISO 8601 format (e.g., PT30M for 30 minutes).
+    3. Creates a service with the provided tenant_id.
+    4. Sets isActive=true by default.
+    
+Response on Success:
+{"message": "Service created successfully"}
+
+Response on Error:
+{"error": "Tenant not found"} or {"error": "Failed to create service: [reason]"}
+*/
+GET
+Get All Services for Tenant
+{{url}}/api/tenants/{tenant_id}/services
+﻿
+
+Authentication Required: Bearer Token
+
+Body
+raw (json)
+json
+/*
+Logic after this endpoint is hit.
+    1. Validates the tenant exists.
+    2. Returns all services for this tenant_id.
+    3. Includes service details: id, name, description, duration, price, isActive.
+    
+Response on Success:
+[
+  {
+    "id": 1,
+    "name": "Haircut",
+    "description": "Men's Haircut",
+    "duration": "PT30M",
+    "price": 25.00,
+    "isActive": true,
+    "tenant": {...}
+  }
+]
+*/
+PUT
+Update a Service
+{{url}}/api/services/{service_id}
+﻿
+
+Authentication Required: Bearer Token
+
+Body
+raw (json)
+View More
+json
+{
+  "name": "Premium Haircut",
+  "description": "Premium Men's Haircut with styling",
+  "duration": "01:00:00",  // Format: HH:MM:SS or PT1H (ISO 8601)
+  "price": 35.00
+}
+
+/*
+Logic after this endpoint is hit.
+    1. Check if this service_id is present in the database.
+    2. If no, then return appropriate error code.
+    3. If yes, then fetch this service.
+    4. Update only the provided fields (partial update supported).
+    5. Save the updated service in the database.
+    
+Response on Success:
+{"message": "Service updated successfully"}
+
+Response on Error:
+{"error": "Service not found"} or {"error": "Failed to update service: [reason]"}
+*/
+DELETE
+Delete a Service
+{{url}}/api/services/{service_id}
+﻿
+
+Authentication Required: Bearer Token
+
+Body
+raw (json)
+json
+/*
+Logic after this endpoint is hit.
+    1. Check if this service_id is present in the database or not.
+    2. If not, then return appropriate error code.
+    3. If yes, then delete this service.
+    4. Note: This will also affect related time slots and bookings.
+    
+Response on Success:
+{"message": "Service deleted successfully"}
+
+Response on Error:
+{"error": "Service not found"} or {"error": "Failed to delete service: [reason]"}
+*/

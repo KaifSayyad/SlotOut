@@ -1,0 +1,66 @@
+OTP
+﻿
+
+POST
+(Admin) Send OTP to email/ phone no.
+{{url}}/api/otp/admin/send
+﻿
+
+Body
+raw (json)
+View More
+json
+{
+    "email" : "gitanjali192003@gmail.com",
+    "phone" : "+919757033455"
+}
+/*
+    Logic after this endpoint is hit.
+    1. Check if any or both of the fields are present.
+    2. If none are present then return appropriate error code.
+    3. If yes, Backend otp service creates a 6 digit otp.
+    4. It then adds that otp to a Redis database {(email | phone), otp}.
+    5. And then sends the confirmation as "OTP Sent"
+*/
+POST
+(Customer) Send OTP to email.
+{{url}}/api/otp/customer/send
+﻿
+
+Body
+raw (json)
+View More
+json
+{
+    "email" : "gitanjali192003@gmail.com",
+    "phone" : null
+}
+/*
+    Logic after this endpoint is hit.
+    1. Check if any or both of the fields are present.
+    2. If none are present then return appropriate error code.
+    3. If yes, Backend otp service creates a 6 digit otp.
+    4. It then adds that otp to a Redis database {(email | phone), otp}.
+    5. And then sends the confirmation as "OTP Sent"
+*/
+POST
+Verify the otp using email
+{{url}}/api/otp/verify
+﻿
+
+Body
+raw (json)
+View More
+json
+{
+    "email" : "gitanjali192003@gmail.com",
+    "phone" : null,
+    "otp" : "1749883"
+}
+
+/*
+    1. Checks if the email. is present as a key in redis database.
+    2. Checks if it's value is same as incoming otp value or not.
+    3. If not, send response as "false".
+    4. If it's same, then remove this email's key from the redis database and send response as "true".
+*/

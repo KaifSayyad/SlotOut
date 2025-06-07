@@ -34,34 +34,46 @@ public class OtpService {
         return String.valueOf(otp);
     }
 
-    public void sendAdminVerificationOtp(OtpRequest request) {
+    public boolean sendAdminVerificationOtp(OtpRequest request) {
         if (request.getEmail() == null) {
             logger.warn("sendAdminVerificationOtp called with null email");
-            return;
+            return false;
         }
-        String otp = generateOtp();
-        redisTemplate.opsForValue().set(request.getEmail(), otp, OTP_EXPIRY_MINUTES, TimeUnit.MINUTES);
-        logger.info("Admin verification OTP sent to email: {} (expires in {} minutes)", request.getEmail(), OTP_EXPIRY_MINUTES);
-        emailRepo.sendOtpEmail(
-            request.getEmail(),
-            "<SlotOut> Do not share this OTP with anyone else",
-            "Your OTP is: " + otp + "\nIt will automatically expire in " + OTP_EXPIRY_MINUTES + " minutes."
-        );
+        try{
+            String otp = generateOtp();
+            redisTemplate.opsForValue().set(request.getEmail(), otp, OTP_EXPIRY_MINUTES, TimeUnit.MINUTES);
+            emailRepo.sendOtpEmail(
+                request.getEmail(),
+                "<SlotOut> Do not share this OTP with anyone else",
+                "Your OTP is: " + otp + "\nIt will automatically expire in " + OTP_EXPIRY_MINUTES + " minutes."
+            );
+            logger.info("Admin verification OTP sent to email: {} (expires in {} minutes)", request.getEmail(), OTP_EXPIRY_MINUTES);
+            return true;
+        }catch(Exception e){
+            logger.error("Error: Exception raised in OtpService at method sendAdminVerificationOtp() : ", (Object)e.getStackTrace());
+            return false;
+        }
     }
 
-    public void sendCustomerEmailConfirmationOtp(OtpRequest request) {
+    public boolean sendCustomerEmailConfirmationOtp(OtpRequest request) {
         if (request.getEmail() == null) {
             logger.warn("sendEmailConfirmationOtp called with null email");
-            return;
+            return false;
         }
-        String otp = generateOtp();
-        redisTemplate.opsForValue().set(request.getEmail(), otp, OTP_EXPIRY_MINUTES, TimeUnit.MINUTES);
-        logger.info("Email confirmation OTP sent to email: {} (expires in {} minutes)", request.getEmail(), OTP_EXPIRY_MINUTES);
-        emailRepo.sendOtpEmail(
-            request.getEmail(),
-            "<SlotOut> Please confirm your email address",
-            "Your OTP is: " + otp
-        );
+        try{
+            String otp = generateOtp();
+            redisTemplate.opsForValue().set(request.getEmail(), otp, OTP_EXPIRY_MINUTES, TimeUnit.MINUTES);
+            emailRepo.sendOtpEmail(
+                request.getEmail(),
+                "<SlotOut> Please confirm your email address",
+                "Your OTP is: " + otp
+            );
+            logger.info("Email confirmation OTP sent to email: {} (expires in {} minutes)", request.getEmail(), OTP_EXPIRY_MINUTES);
+            return true;
+        }catch(Exception e){
+            logger.error("Error: Exception raised in OtpService at method sendCustomerEmailConfirmationOtp() : ", (Object)e.getStackTrace());
+            return false;
+        }
     }
 
     public boolean verifyOtp(OtpVerificationRequest verification) {

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SlotOut - Tenant Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .login-container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="email"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .login-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .login-btn:hover {
+            background-color: #0056b3;
+        }
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>Tenant Login</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="login-btn">Login</button>
+        </form>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://localhost:8080';
+        
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/tenants/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Store the token in localStorage
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('tenantId', data.tenantId);
+                    localStorage.setItem('tenantEmail', data.email);
+                    localStorage.setItem('tenantName', data.name);
+                    
+                    messageDiv.innerHTML = `<div class="success">${data.message}</div>`;
+                    
+                    // Redirect to dashboard or show success message
+                    setTimeout(() => {
+                        window.location.href = '/dashboard'; // Update with your dashboard URL
+                    }, 1500);
+                } else {
+                    messageDiv.innerHTML = `<div class="error">${data}</div>`;
+                }
+            } catch (error) {
+                messageDiv.innerHTML = `<div class="error">Network error. Please try again.</div>`;
+                console.error('Login error:', error);
+            }
+        });
+        
+        // Function to make authenticated API calls
+        function makeAuthenticatedRequest(url, options = {}) {
+            const token = localStorage.getItem('authToken');
+            
+            if (!options.headers) {
+                options.headers = {};
+            }
+            
+            if (token) {
+                options.headers['Authorization'] = `Bearer ${token}`;
+            }
+            
+            return fetch(url, options);
+        }
+        
+        // Example usage for authenticated requests:
+        // makeAuthenticatedRequest('/api/tenants/profile')
+        //   .then(response => response.json())
+        //   .then(data => console.log(data));
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,113 @@
+TimeSlot
+﻿
+
+POST
+Create TimeSlot
+{{url}}/api/services/{service_id}/timeslots
+﻿
+
+Authentication Required: Bearer Token
+
+Body
+raw (json)
+View More
+json
+{
+  "startTime": "2025-05-27T10:00:00",  // ISO 8601 format without Z
+  "endTime": "2025-05-27T10:30:00"
+}
+
+
+/*
+Logic after this endpoint is hit.
+    1. Validates the service exists.
+    2. Check if this slot overlaps with already existing slots for this service.
+    3. If no overlap, create new time slot with isBooked=false.
+    4. If overlap exists, return appropriate error code.
+    
+Response on Success:
+{"message": "Time slot created successfully"}
+
+Response on Error:
+{"error": "Service not found"} or {"error": "Time slot overlaps with existing slot"}
+*/
+GET
+Get All Available TimeSlots
+{{url}}/api/services/{service_id}/timeslots/available
+﻿
+
+No Authentication Required (Public Endpoint)
+
+Body
+raw (json)
+json
+/*
+Logic after this endpoint is hit.
+    1. Fetch all the available (non-booked) slots for this service_id.
+    2. Returns only slots where isBooked=false.
+    
+Response on Success:
+[
+  {
+    "id": 1,
+    "startTime": "2025-05-27T10:00:00",
+    "endTime": "2025-05-27T10:30:00",
+    "isBooked": false,
+    "service": {...},
+    "tenant": {...}
+  }
+]
+*/
+PUT
+Update a TimeSlot
+{{url}}/api/timeslots/{timeslot_id}
+﻿
+
+Authentication Required: Bearer Token
+
+Body
+raw (json)
+View More
+json
+{
+  "startTime": "2025-05-27T11:00:00",  // ISO 8601 format
+  "endTime": "2025-05-27T11:30:00"
+}
+
+/*
+Logic after this endpoint is hit.
+    1. Search if this timeslot_id exists.
+    2. If yes, check if new timeslot overlaps with other existing slots (excluding current slot).
+    3. If no overlap, update this timeslot with new timings.
+    4. If overlap exists, return appropriate error code.
+    
+Response on Success:
+{"message": "Time slot updated successfully"}
+
+Response on Error:
+{"error": "Time slot not found"} or {"error": "Updated time slot overlaps with existing slot"}
+*/
+DELETE
+Delete a TimeSlot
+{{url}}/api/timeslots/{timeslot_id}
+﻿
+
+Authentication Required: Bearer Token
+
+Body
+raw (json)
+json
+/*
+Logic after this endpoint is hit.
+    1. Check if this timeslot_id exists or not.
+    2. Check if the timeslot is currently booked.
+    3. If not booked, delete this timeslot.
+    4. If booked, return error (cannot delete booked slots).
+    5. If timeslot doesn't exist, return appropriate error code.
+    
+Response on Success:
+{"message": "Time slot deleted successfully"}
+
+Response on Error:
+{"error": "Time slot not found"} or {"error": "Cannot delete booked time slot"}
+*/

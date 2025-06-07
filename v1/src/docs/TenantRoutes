@@ -1,0 +1,161 @@
+Tenant
+﻿
+
+POST
+Register (Pre-Registration)
+{{url}}/api/tenants/preRegister
+﻿
+
+Body
+raw (json)
+View More
+json
+{
+  "name": "Glow Spa",
+  "email": "contact@glowspa.com",
+  "phone": "+1234567890",
+  "address": "123 Main Street, NY",
+  "password": "securePassword123"
+}
+
+/*
+Logic :
+    1. Validates all required fields (name, email, password).
+    2. Hashes the password using BCrypt.
+    3. Saves tenant to database with isEmailVerified=false.
+    4. Sends OTP to provided email using OTP service.
+    5. Returns success message asking user to verify OTP.
+    
+Response on Success:
+"OTP sent successfully!!"
+
+Response on Error:
+"User already exists!" or "Unable to send OTP at this moment, please try again!!"
+*/
+POST
+Login
+{{url}}/api/tenants/login
+﻿
+
+Body
+raw (json)
+View More
+json
+{
+  "email": "contact@glowspa.com",
+  "password": "securePassword123"
+}
+
+/*
+Logic :
+    1. Validate email and password are provided.
+    2. Find tenant by email in database.
+    3. Verify password using BCrypt.
+    4. If credentials are valid, generate JWT token and return success with token.
+    5. If invalid, return appropriate error message.
+
+Response on Success:
+{
+  "message": "Login successful",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "tenantId": "123e4567-e89b-12d3-a456-426614174000",
+  "email": "contact@glowspa.com",
+  "name": "Glow Spa"
+}
+
+For subsequent API calls, include the token in Authorization header:
+Authorization: Bearer <token>
+*/
+POST
+Verify OTP (Complete Registration)
+{{url}}/api/tenants/verifyOtp
+﻿
+
+Body
+raw (json)
+View More
+json
+{
+  "email": "contact@glowspa.com",
+  "phone": null,
+  "otp": "123456"
+}
+
+/*
+Logic :
+    1. Validates OTP using OTP service.
+    2. If valid, marks tenant email as verified (isEmailVerified=true).
+    3. Tenant can now login to the system.
+    
+Response on Success:
+"OTP Verified successfully!"
+
+Response on Error:
+"No Tenant found with this email ID!!" or "Unable to send OTP at this moment, please try again later!!"
+*/
+GET
+Get All Tenants (Admin Only)
+{{url}}/api/tenants/
+﻿
+
+Body
+raw (json)
+json
+/*
+Authentication Required: Bearer Token
+
+Logic after this endpoint is hit.
+    1. Returns all the tenants in the system.
+    2. This is typically an admin-only endpoint.
+*/
+GET
+Get By ID
+{{url}}/api/tenants/tenant_id
+﻿
+
+Body
+raw (json)
+json
+/*
+    Logic after this endpoint is hit.
+    1. Returns tenant with ID equals to {tenant_id}
+*/
+PATCH
+Update
+{{url}}/api/tenants/tenant_id
+﻿
+
+Body
+raw (json)
+View More
+json
+{
+  "name": "Glow Spa",
+  "email": "contact@glowspa.com",
+  "phone": "+1234567890",
+  "address": "123 Main Street, NY",
+  "password": "newSecurePassword123"
+}
+
+/*
+    Logic after this endpoint is hit.
+    1. Checks if the {tenant_id} is present in the database or not.
+    2. If yes, then update this tenant.
+    3. If not, then return appropriate error code.
+*/
+DELETE
+Delete
+{{url}}/api/tenants/tenant_id
+﻿
+
+Body
+raw (json)
+json
+/*
+    Logic after this endpoint is hit.
+    1. Checks if this tenant_id is present in the database.
+    2. If yes, then fetch a list of service_id(s) with this tenant_id.
+    3. Then delete all the timeslots, with these service ids.
+    4. Then delete all these services.
+    5. Then delete this tenant.
+*/
