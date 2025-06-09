@@ -5,12 +5,14 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.slotout.v1.dto.OtpRequest;
-import com.slotout.v1.dto.OtpVerificationRequest;
-import com.slotout.v1.dto.TenantRegister;
+import com.slotout.v1.dto.request.OtpRequest;
+import com.slotout.v1.dto.request.OtpVerificationRequest;
+import com.slotout.v1.dto.request.TenantRequest;
+import com.slotout.v1.dto.response.TenantResponseDto;
 import com.slotout.v1.models.Tenant;
 import com.slotout.v1.repositories.TenantRepo;
 
@@ -28,24 +30,38 @@ public class TenantService {
     @Autowired
     private PasswordEncoder passwordEncoder;
     
-    public String preRegister(TenantRegister tenantDto){
+    public ResponseEntity<?> preRegister(TenantRequest tenantDto){
         List<Tenant> tenants = repo.findByEmail(tenantDto.getEmail());
         if(tenants.size() > 0){  
             Tenant tenant = tenants.get(0);
-            if(tenant.getIsEmailVerified()) return new String("User already exists!");
+            if(tenant.getIsEmailVerified()) return ResponseEntity.badRequest().body(new String("Tenant with this email already exists, please login or use a different email!"));
             if(otpService.sendAdminVerificationOtp(new OtpRequest(tenantDto.getEmail(), null))){
-                return new String("OTP sent successfully!");
-            }else return new String("Unable to send OTP at this moment, please try again!");
+                TenantResponseDto responseDto = new TenantResponseDto(
+                    tenant.getId(),
+                    tenant.getName(),
+                    tenant.getEmail(),
+                    "OTP sent successfully"
+                );
+                logger.info("OTP sent successfully to existing tenant: " + tenant.getEmail());
+                return ResponseEntity.ok().body(responseDto);
+            }else return ResponseEntity.badRequest().body(new String("Unable to send OTP at this moment, please try again!!"));
         }else{
             try{
                 Tenant tenantObj = tenantDto.getTenantObject();
-                repo.save(tenantObj);
-                logger.info("New tenant created successfully tenant = "+tenantObj.toString());
+                Tenant newTenantObj = repo.save(tenantObj);
+                logger.info("New tenant created successfully tenant = "+newTenantObj.toString());
                 otpService.sendAdminVerificationOtp(new OtpRequest(tenantDto.getEmail(),  tenantDto.getPhone()));
-                return new String("OTP sent successfully!!");
+                TenantResponseDto responseDto = new TenantResponseDto(
+                    newTenantObj.getId(),
+                    newTenantObj.getName(),
+                    newTenantObj.getEmail(),
+                    "OTP sent successfully"
+                );
+                logger.info("OTP sent successfully to tenant: " + newTenantObj.getEmail());
+                return ResponseEntity.ok().body(responseDto);
             }catch(Exception e){
                 logger.error("Error: Exception raised in TenantService at method preRegister() : ", (Object)e.getStackTrace());
-                return new String("\"Unable to send OTP at this moment, please try again!!");
+                return ResponseEntity.internalServerError().body(new String("Some error occurred, please try again!!"));
             }
         }
     }

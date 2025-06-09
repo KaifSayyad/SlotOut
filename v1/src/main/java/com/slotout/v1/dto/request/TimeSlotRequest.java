@@ -1,4 +1,4 @@
-package com.slotout.v1.dto;
+package com.slotout.v1.dto.request;
 
 import com.slotout.v1.models.Service;
 import com.slotout.v1.models.Tenant;
@@ -8,7 +8,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class TimeSlotRegister {
+public class TimeSlotRequest {
     
     private String startTime; // ISO 8601 format: "2025-05-27T10:00:00"
     private String endTime;   // ISO 8601 format: "2025-05-27T10:30:00"

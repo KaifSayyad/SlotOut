@@ -1,4 +1,4 @@
-package com.slotout.v1.dto;
+package com.slotout.v1.dto.request;
 
 import com.slotout.v1.models.Service;
 import com.slotout.v1.models.Tenant;
@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.time.Duration;
 
 @Data
-public class ServiceRegister {
+public class ServiceRequest {
     
     private String name;
     private String description;

@@ -1,4 +1,4 @@
-package com.slotout.v1.dto;
+package com.slotout.v1.dto.request;
 
 import com.slotout.v1.models.Booking;
 import com.slotout.v1.models.Service;
@@ -7,7 +7,7 @@ import com.slotout.v1.models.TimeSlot;
 import lombok.Data;
 
 @Data
-public class BookingRegister {
+public class BookingRequest {
     
     private Long tenantId;
     private Long serviceId;

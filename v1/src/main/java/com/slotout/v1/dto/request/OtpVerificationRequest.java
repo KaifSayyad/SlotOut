@@ -1,4 +1,4 @@
-package com.slotout.v1.dto;
+package com.slotout.v1.dto.request;
 
 import io.micrometer.common.lang.Nullable;
 import lombok.Data;

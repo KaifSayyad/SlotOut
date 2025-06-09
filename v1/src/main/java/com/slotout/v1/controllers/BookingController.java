@@ -1,19 +1,22 @@
 package com.slotout.v1.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import com.slotout.v1.dto.BookingRegister;
-import com.slotout.v1.dto.OtpVerificationRequest;
-import com.slotout.v1.models.Booking;
+import com.slotout.v1.dto.request.BookingRequest;
+import com.slotout.v1.dto.request.OtpVerificationRequest;
+import com.slotout.v1.dto.response.ApiResponseDto;
+import com.slotout.v1.dto.response.BookingResponseDto;
 import com.slotout.v1.services.BookingService;
 
 import java.util.List;
-import java.util.Map;
 
+@Tag(name = "Booking", description = "Booking management APIs")
 @RestController
 @RequestMapping("/api")
 public class BookingController {
@@ -23,55 +26,57 @@ public class BookingController {
     @Autowired
     private BookingService bookingService;
     
+    @Operation(summary = "Create a new booking", description = "Creates a new booking and sends OTP for confirmation.")
     @PostMapping("/bookings")
-    public ResponseEntity<?> createBooking(@RequestBody BookingRegister bookingDto) {
+    public ResponseEntity<?> createBooking(@RequestBody BookingRequest bookingDto) {
         try {
-            String result = bookingService.createBooking(bookingDto);
-            return ResponseEntity.ok().body(Map.of("message", result));
+            BookingResponseDto response = bookingService.createBooking(bookingDto);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ApiResponseDto(null, e.getMessage()));
         } catch (Exception e) {
             logger.error("Error in BookingController.createBooking: ", e);
-            return ResponseEntity.internalServerError().body(Map.of("error", "Internal server error"));
+            return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Internal server error"));
         }
     }
     
+    @Operation(summary = "Confirm booking with OTP", description = "Confirms a booking using OTP.")
     @PostMapping("/bookings/{bookingId}/confirm")
     public ResponseEntity<?> confirmBooking(@PathVariable Long bookingId, @RequestBody OtpVerificationRequest otpRequest) {
         try {
-            String result = bookingService.confirmBookingWithOtp(bookingId, otpRequest);
-            if (result.equals("Booking confirmed successfully")) {
-                return ResponseEntity.ok().body(Map.of("message", result));
-            } else {
-                return ResponseEntity.badRequest().body(Map.of("error", result));
-            }
+            BookingResponseDto response = bookingService.confirmBookingWithOtp(bookingId, otpRequest);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ApiResponseDto(null, e.getMessage()));
         } catch (Exception e) {
             logger.error("Error in BookingController.confirmBooking: ", e);
-            return ResponseEntity.internalServerError().body(Map.of("error", "Internal server error"));
+            return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Internal server error"));
         }
     }
     
+    @Operation(summary = "Get bookings by tenant", description = "Retrieves all bookings for a tenant.")
     @GetMapping("/tenants/{tenantId}/bookings")
     public ResponseEntity<?> getBookingsByTenant(@PathVariable Long tenantId) {
         try {
-            List<Booking> bookings = bookingService.getBookingsByTenant(tenantId);
-            return ResponseEntity.ok().body(bookings);
+            List<BookingResponseDto> response = bookingService.getBookingsByTenant(tenantId);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             logger.error("Error in BookingController.getBookingsByTenant: ", e);
-            return ResponseEntity.internalServerError().body(Map.of("error", "Internal server error"));
+            return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Internal server error"));
         }
     }
     
+    @Operation(summary = "Cancel a booking", description = "Cancels a booking and frees the slot.")
     @DeleteMapping("/bookings/{bookingId}")
     public ResponseEntity<?> cancelBooking(@PathVariable Long bookingId) {
         try {
-            String result = bookingService.cancelBooking(bookingId);
-            if (result.equals("Booking cancelled successfully")) {
-                return ResponseEntity.ok().body(Map.of("message", result));
-            } else {
-                return ResponseEntity.badRequest().body(Map.of("error", result));
-            }
+            BookingResponseDto response = bookingService.cancelBooking(bookingId);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(new ApiResponseDto(null, e.getMessage()));
         } catch (Exception e) {
             logger.error("Error in BookingController.cancelBooking: ", e);
-            return ResponseEntity.internalServerError().body(Map.of("error", "Internal server error"));
+            return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Internal server error"));
         }
     }
 }

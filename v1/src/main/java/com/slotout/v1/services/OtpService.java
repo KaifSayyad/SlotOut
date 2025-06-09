@@ -5,9 +5,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.slotout.v1.dto.OtpRequest;
-import com.slotout.v1.dto.OtpVerificationRequest;
+import com.slotout.v1.dto.request.OtpRequest;
+import com.slotout.v1.dto.request.OtpVerificationRequest;
 import com.slotout.v1.repositories.EmailRepo;
 
 import java.util.Random;
@@ -37,9 +36,9 @@ public class OtpService {
     public boolean sendAdminVerificationOtp(OtpRequest request) {
         if (request.getEmail() == null) {
             logger.warn("sendAdminVerificationOtp called with null email");
-            return false;
+            throw new IllegalArgumentException("Email is required");
         }
-        try{
+        try {
             String otp = generateOtp();
             redisTemplate.opsForValue().set(request.getEmail(), otp, OTP_EXPIRY_MINUTES, TimeUnit.MINUTES);
             emailRepo.sendOtpEmail(
@@ -49,18 +48,18 @@ public class OtpService {
             );
             logger.info("Admin verification OTP sent to email: {} (expires in {} minutes)", request.getEmail(), OTP_EXPIRY_MINUTES);
             return true;
-        }catch(Exception e){
-            logger.error("Error: Exception raised in OtpService at method sendAdminVerificationOtp() : ", (Object)e.getStackTrace());
-            return false;
+        } catch (Exception e) {
+            logger.error("Error: Exception raised in OtpService at method sendAdminVerificationOtp() : {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to send OTP", e);
         }
     }
 
     public boolean sendCustomerEmailConfirmationOtp(OtpRequest request) {
         if (request.getEmail() == null) {
             logger.warn("sendEmailConfirmationOtp called with null email");
-            return false;
+            throw new IllegalArgumentException("Email is required");
         }
-        try{
+        try {
             String otp = generateOtp();
             redisTemplate.opsForValue().set(request.getEmail(), otp, OTP_EXPIRY_MINUTES, TimeUnit.MINUTES);
             emailRepo.sendOtpEmail(
@@ -70,35 +69,36 @@ public class OtpService {
             );
             logger.info("Email confirmation OTP sent to email: {} (expires in {} minutes)", request.getEmail(), OTP_EXPIRY_MINUTES);
             return true;
-        }catch(Exception e){
-            logger.error("Error: Exception raised in OtpService at method sendCustomerEmailConfirmationOtp() : ", (Object)e.getStackTrace());
-            return false;
+        } catch (Exception e) {
+            logger.error("Error: Exception raised in OtpService at method sendCustomerEmailConfirmationOtp() : {}", e.getMessage(), e);
+            throw new RuntimeException("Failed to send OTP", e);
         }
     }
 
     public boolean verifyOtp(OtpVerificationRequest verification) {
         if (verification.getEmail() == null || verification.getOtp() == null) {
             logger.warn("verifyEmailConfirmationOtp called with null email or otp");
-            return false;
+            throw new IllegalArgumentException("Email and OTP are required");
         }
         try {
             String storedOtp = redisTemplate.opsForValue().get(verification.getEmail());
             if (storedOtp == null) {
                 logger.info("No OTP found in Redis for email: {}", verification.getEmail());
-                return false;
+                throw new IllegalArgumentException("Invalid or expired OTP.");
             }
             boolean result = verification.getOtp().equals(storedOtp);
-            
             logger.info("Email confirmation OTP verification for email: {} - {}", verification.getEmail(), result ? "SUCCESS" : "FAILURE");
-
-            if(result){
-                redisTemplate.delete(verification.getEmail());    
+            if (result) {
+                redisTemplate.delete(verification.getEmail());
+                return true; // OTP verified successfully
+            } else {
+                throw new IllegalArgumentException("Invalid or expired OTP.");
             }
-
-            return result;
+        } catch (IllegalArgumentException e) {
+            throw e;
         } catch (Exception e) {
-            logger.error("Exception during email confirmation OTP verification for email: {}", verification.getEmail(), e);
-            return false;
+            logger.error("Exception during email confirmation OTP verification for email: {}. Error: {}", verification.getEmail(), e.getMessage(), e);
+            throw new RuntimeException("OTP verification failed", e);
         }
     }
 }

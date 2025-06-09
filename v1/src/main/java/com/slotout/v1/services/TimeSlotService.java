@@ -7,9 +7,11 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.slotout.v1.dto.TimeSlotRegister;
+import com.slotout.v1.dto.request.TimeSlotRequest;
+import com.slotout.v1.dto.response.TimeSlotResponseDto;
 import com.slotout.v1.models.TimeSlot;
 import com.slotout.v1.repositories.ServiceRepo;
 import com.slotout.v1.repositories.TimeSlotRepo;
@@ -25,11 +27,11 @@ public class TimeSlotService {
     @Autowired
     private ServiceRepo serviceRepo;
     
-    public String createTimeSlot(Long serviceId, TimeSlotRegister timeSlotDto) {
+    public ResponseEntity<?> createTimeSlot(Long serviceId, TimeSlotRequest timeSlotDto) {
         try {
             Optional<com.slotout.v1.models.Service> serviceOpt = serviceRepo.findById(serviceId);
             if (serviceOpt.isEmpty()) {
-                return "Service not found";
+                return ResponseEntity.badRequest().body("Service not found");
             }
             
             com.slotout.v1.models.Service service = serviceOpt.get();
@@ -37,16 +39,23 @@ public class TimeSlotService {
             
             // Check for overlapping slots
             if (hasOverlappingSlots(service, timeSlot.getStartTime(), timeSlot.getEndTime())) {
-                return "Time slot overlaps with existing slot";
+                return ResponseEntity.badRequest().body("Time slot overlaps with existing slot");
             }
-            
-            timeSlotRepo.save(timeSlot);
+
+            TimeSlot newTimeSlot = timeSlotRepo.save(timeSlot);
+            TimeSlotResponseDto responseDto = new TimeSlotResponseDto(
+                newTimeSlot.getId(),
+                newTimeSlot.getStartTime().toString(),
+                newTimeSlot.getEndTime().toString(),
+                newTimeSlot.getIsBooked(),
+                "Time slot created successfully"
+            );
             logger.info("Time slot created successfully for service: " + service.getName());
-            return "Time slot created successfully";
-            
+            return ResponseEntity.ok().body(responseDto);
+
         } catch (Exception e) {
             logger.error("Error creating time slot: ", e);
-            return "Failed to create time slot: " + e.getMessage();
+            return ResponseEntity.internalServerError().body("Failed to create time slot: " + e.getMessage());
         }
     }
     
@@ -68,11 +77,11 @@ public class TimeSlotService {
         }
     }
     
-    public String updateTimeSlot(Long timeSlotId, TimeSlotRegister timeSlotDto) {
+    public ResponseEntity<?> updateTimeSlot(Long timeSlotId, TimeSlotRequest timeSlotDto) {
         try {
             Optional<TimeSlot> timeSlotOpt = timeSlotRepo.findById(timeSlotId);
             if (timeSlotOpt.isEmpty()) {
-                return "Time slot not found";
+                return ResponseEntity.badRequest().body("Time slot not found");
             }
             
             TimeSlot existingSlot = timeSlotOpt.get();
@@ -84,41 +93,48 @@ public class TimeSlotService {
             
             // Check for overlapping slots (excluding current slot)
             if (hasOverlappingSlotsExcluding(existingSlot.getService(), newStartTime, newEndTime, timeSlotId)) {
-                return "Updated time slot overlaps with existing slot";
+                return ResponseEntity.badRequest().body("Updated time slot overlaps with existing slot");
             }
             
             existingSlot.setStartTime(newStartTime);
             existingSlot.setEndTime(newEndTime);
             
-            timeSlotRepo.save(existingSlot);
-            logger.info("Time slot updated successfully: " + timeSlotId);
-            return "Time slot updated successfully";
-            
+            TimeSlot updatedTimeSlot = timeSlotRepo.save(existingSlot);
+            TimeSlotResponseDto responseDto = new TimeSlotResponseDto(
+                updatedTimeSlot.getId(),
+                updatedTimeSlot.getStartTime().toString(),
+                updatedTimeSlot.getEndTime().toString(),
+                updatedTimeSlot.getIsBooked(),
+                "Time slot updated successfully"
+            );
+            logger.info("Time slot updated successfully: " + updatedTimeSlot.getId());
+            return ResponseEntity.ok().body(responseDto);
+
         } catch (Exception e) {
             logger.error("Error updating time slot: ", e);
-            return "Failed to update time slot: " + e.getMessage();
+            return ResponseEntity.internalServerError().body("Failed to update time slot: " + e.getMessage());
         }
     }
-    
-    public String deleteTimeSlot(Long timeSlotId) {
+
+    public ResponseEntity<?> deleteTimeSlot(Long timeSlotId) {
         try {
             Optional<TimeSlot> timeSlotOpt = timeSlotRepo.findById(timeSlotId);
             if (timeSlotOpt.isEmpty()) {
-                return "Time slot not found";
+                return ResponseEntity.badRequest().body("Time slot not found");
             }
             
             TimeSlot timeSlot = timeSlotOpt.get();
             if (timeSlot.getIsBooked()) {
-                return "Cannot delete booked time slot";
+                return ResponseEntity.badRequest().body("Cannot delete booked time slot");
             }
             
             timeSlotRepo.deleteById(timeSlotId);
             logger.info("Time slot deleted successfully: " + timeSlotId);
-            return "Time slot deleted successfully";
+            return ResponseEntity.ok().body("Time slot deleted successfully");
             
         } catch (Exception e) {
             logger.error("Error deleting time slot: ", e);
-            return "Failed to delete time slot: " + e.getMessage();
+            return ResponseEntity.internalServerError().body("Failed to delete time slot: " + e.getMessage());
         }
     }
     

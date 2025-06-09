@@ -8,7 +8,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.slotout.v1.dto.ServiceRegister;
+import com.slotout.v1.dto.request.ServiceRequest;
+import com.slotout.v1.dto.response.ServiceResponseDto;
 import com.slotout.v1.models.Tenant;
 import com.slotout.v1.repositories.ServiceRepo;
 import com.slotout.v1.repositories.TenantRepo;
@@ -24,23 +25,20 @@ public class ServiceService {
     @Autowired
     private TenantRepo tenantRepo;
     
-    public String createService(Long tenantId, ServiceRegister serviceDto) {
+    public ServiceResponseDto createService(Long tenantId, ServiceRequest serviceDto) {
         try {
             Optional<Tenant> tenantOpt = tenantRepo.findById(tenantId);
             if (tenantOpt.isEmpty()) {
-                return "Tenant not found";
+                throw new IllegalArgumentException("Tenant not found");
             }
-            
             Tenant tenant = tenantOpt.get();
             com.slotout.v1.models.Service service = serviceDto.getServiceObject(tenant);
             serviceRepo.save(service);
-            
             logger.info("Service created successfully: " + service.getName() + " for tenant: " + tenant.getEmail());
-            return "Service created successfully";
-            
+            return new ServiceResponseDto(service.getId(), service.getName(), service.getDescription(), Boolean.TRUE.equals(service.getIsActive()), "Service created successfully");
         } catch (Exception e) {
             logger.error("Error creating service: ", e);
-            return "Failed to create service: " + e.getMessage();
+            throw e;
         }
     }
     
@@ -59,7 +57,7 @@ public class ServiceService {
         }
     }
     
-    public String updateService(Long serviceId, ServiceRegister serviceDto) {
+    public String updateService(Long serviceId, ServiceRequest serviceDto) {
         try {
             Optional<com.slotout.v1.models.Service> serviceOpt = serviceRepo.findById(serviceId);
             if (serviceOpt.isEmpty()) {

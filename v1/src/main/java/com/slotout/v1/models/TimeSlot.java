@@ -1,6 +1,5 @@
 package com.slotout.v1.models;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 

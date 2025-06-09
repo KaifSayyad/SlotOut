@@ -1,11 +1,11 @@
-package com.slotout.v1.dto;
+package com.slotout.v1.dto.request;
 
 import com.slotout.v1.models.Tenant;
 
 import lombok.Data;
 
 @Data
-public class TenantRegister {
+public class TenantRequest {
     
     private String name;
 

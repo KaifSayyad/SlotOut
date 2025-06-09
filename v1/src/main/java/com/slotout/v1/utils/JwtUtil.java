@@ -1,4 +1,4 @@
-package com.slotout.v1.configurations;
+package com.slotout.v1.utils;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;

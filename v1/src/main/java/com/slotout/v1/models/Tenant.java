@@ -1,10 +1,8 @@
 package com.slotout.v1.models;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 
 @Entity
@@ -16,7 +14,7 @@ import java.util.UUID;
 public class Tenant {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
     private String name;
