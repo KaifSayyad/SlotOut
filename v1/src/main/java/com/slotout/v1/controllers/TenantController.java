@@ -22,6 +22,11 @@ import com.slotout.v1.utils.JwtUtil;
 
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 
@@ -41,6 +46,17 @@ public class TenantController {
     
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Operation(summary = "Get all tenants", description = "Returns a list of all tenants.")
+    @GetMapping("/all")
+    public ResponseEntity<?> getAllTenants() {
+        try {
+            return ResponseEntity.ok().body(service.getAllTenants());
+        } catch (Exception e) {
+            logger.error("Error at TenantController : route '/all' Error = ", (Object)e.getStackTrace());
+            return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Some error occurred, please try again!!"));
+        }
+    }
     
     @Operation(summary = "Pre-register tenant", description = "Registers a new tenant and sends OTP.")
     @PostMapping("/preRegister")
@@ -139,4 +155,53 @@ public class TenantController {
         }
     }
     
+    @Operation(summary = "Get tenant by ID", description = "Returns tenant details by ID.")
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getTenantById(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
+        try {
+            Tenant tenant = service.getTenantById(id);
+            if (tenant == null) {
+                return ResponseEntity.status(404).body(new ApiResponseDto(null, "Tenant not found"));
+            }
+            TenantResponseDto response = new TenantResponseDto(tenant.getId(), tenant.getName(), tenant.getEmail(), null);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error at TenantController : route '/{id}' Error = ", (Object)e.getStackTrace());
+            return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Internal server error"));
+        }
+    }
+
+    @Operation(summary = "Update tenant", description = "Updates tenant details.")
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> updateTenant(@PathVariable Long id, @RequestHeader("Authorization") String authHeader, @RequestBody Map<String, String> updateRequest) {
+        try {
+            Tenant updatedTenant = service.updateTenant(id, updateRequest);
+            if (updatedTenant == null) {
+                return ResponseEntity.status(404).body(new ApiResponseDto(null, "Tenant not found"));
+            }
+            TenantResponseDto response = new TenantResponseDto(updatedTenant.getId(), updatedTenant.getName(), updatedTenant.getEmail(), "Tenant updated successfully");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error at TenantController : route '/{id}' PATCH Error = ", (Object)e.getStackTrace());
+            return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Internal server error"));
+        }
+    }
+
+    @Operation(summary = "Delete tenant", description = "Deletes a tenant by ID.")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteTenant(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
+        try {
+            boolean deleted = service.deleteTenant(id);
+            if (!deleted) {
+                return ResponseEntity.status(404).body(new ApiResponseDto(null, "Tenant not found"));
+            }
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Tenant deleted successfully");
+            response.put("error", null);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error at TenantController : route '/{id}' DELETE Error = ", (Object)e.getStackTrace());
+            return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Internal server error"));
+        }
+    }
 }

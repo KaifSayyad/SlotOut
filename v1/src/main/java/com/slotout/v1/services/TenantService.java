@@ -1,6 +1,7 @@
 package com.slotout.v1.services;
 
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -136,4 +137,42 @@ public class TenantService {
         }
     }
 
+    public Tenant getTenantById(Long id) {
+        try {
+            return repo.findById(id).orElse(null);
+        } catch (Exception e) {
+            logger.error("Error at TenantService : getTenantById() : Error = ", (Object)e.getStackTrace());
+            return null;
+        }
+    }
+
+    public Tenant updateTenant(Long id, Map<String, String> updateRequest) {
+        try {
+            Tenant tenant = repo.findById(id).orElse(null);
+            if (tenant == null) return null;
+            if (updateRequest.containsKey("name")) {
+                tenant.setName(updateRequest.get("name"));
+            }
+            if (updateRequest.containsKey("address")) {
+                tenant.setAddress(updateRequest.get("address"));
+            }
+            // Add more fields as needed
+            repo.save(tenant);
+            return tenant;
+        } catch (Exception e) {
+            logger.error("Error at TenantService : updateTenant() : Error = ", (Object)e.getStackTrace());
+            return null;
+        }
+    }
+
+    public boolean deleteTenant(Long id) {
+        try {
+            if (!repo.existsById(id)) return false;
+            repo.deleteById(id);
+            return true;
+        } catch (Exception e) {
+            logger.error("Error at TenantService : deleteTenant() : Error = ", (Object)e.getStackTrace());
+            return false;
+        }
+    }
 }
