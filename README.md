@@ -11,7 +11,7 @@ SlotOut is a multi-tenant SaaS platform that enables small businesses (restauran
 3. **Service Management**: Authenticated tenants can create, update, and delete services.
 4. **Time Slot Management**: Authenticated tenants can create, update, and delete time slots for their services.
 5. **Booking**: Customers can view available slots and book a service. Bookings are confirmed via OTP (handled internally).
-
+6. **Swagger URL** : http://localhost:8888/swagger-ui/index.html
 ---
 
 ## API Endpoints

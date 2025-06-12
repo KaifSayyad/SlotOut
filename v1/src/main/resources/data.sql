@@ -1,1 +1,1 @@
-SELECT * FORM TENANT;
+select * from booking;
