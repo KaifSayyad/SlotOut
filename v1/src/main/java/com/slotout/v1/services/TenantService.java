@@ -34,7 +34,7 @@ public class TenantService {
     public ResponseEntity<?> preRegister(TenantRequest tenantDto){
         List<Tenant> tenants = repo.findByEmail(tenantDto.getEmail());
         if(tenants.size() > 0){  
-            Tenant tenant = tenants.get(0);
+            Tenant tenant = tenants.getFirst();
             if(tenant.getIsEmailVerified()) return ResponseEntity.badRequest().body(new String("Tenant with this email already exists, please login or use a different email!"));
             if(otpService.sendAdminVerificationOtp(new OtpRequest(tenantDto.getEmail(), null))){
                 TenantResponseDto responseDto = new TenantResponseDto(
@@ -73,7 +73,7 @@ public class TenantService {
             List<Tenant> tenants = repo.findByEmail(otpVerificationRequest.getEmail());
             if(tenants.size() > 0){
                 try{
-                    Tenant t = tenants.get(0);
+                    Tenant t = tenants.getFirst();
                     t.setIsEmailVerified(true);
                     repo.save(t);
                     return new String("OTP Verified successfully!");
@@ -97,7 +97,7 @@ public class TenantService {
                 return "Invalid email or password";
             }
             
-            Tenant tenant = tenants.get(0);
+            Tenant tenant = tenants.getFirst();
             
             // Check if email is verified
             if (!tenant.getIsEmailVerified()) {
@@ -121,7 +121,7 @@ public class TenantService {
     public Tenant getTenantByEmail(String email) {
         try {
             List<Tenant> tenants = repo.findByEmail(email);
-            return tenants.isEmpty() ? null : tenants.get(0);
+            return tenants.isEmpty() ? null : tenants.getFirst();
         } catch (Exception e) {
             logger.error("Error at TenantService : at method getTenantByEmail() : Error = ", (Object)e.getStackTrace());
             return null;

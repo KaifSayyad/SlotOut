@@ -22,14 +22,14 @@ public class RedisConfig {
     private String password;
 
     @Bean
-    public RedisConnectionFactory redisConnectionFactory() {
+    RedisConnectionFactory redisConnectionFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(host, port);
         config.setPassword(RedisPassword.of(password));
         return new LettuceConnectionFactory(config);
     }
 
     @Bean
-    public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory connectionFactory) {
+    StringRedisTemplate stringRedisTemplate(RedisConnectionFactory connectionFactory) {
         return new StringRedisTemplate(connectionFactory);
     }
 }

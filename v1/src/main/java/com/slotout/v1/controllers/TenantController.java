@@ -11,6 +11,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -157,7 +158,7 @@ public class TenantController {
     
     @Operation(summary = "Get tenant by ID", description = "Returns tenant details by ID.")
     @GetMapping("/{id}")
-    public ResponseEntity<?> getTenantById(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> getTenantById(@PathVariable Long id, @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
         try {
             Tenant tenant = service.getTenantById(id);
             if (tenant == null) {
@@ -173,7 +174,7 @@ public class TenantController {
 
     @Operation(summary = "Update tenant", description = "Updates tenant details.")
     @PatchMapping("/{id}")
-    public ResponseEntity<?> updateTenant(@PathVariable Long id, @RequestHeader("Authorization") String authHeader, @RequestBody Map<String, String> updateRequest) {
+    public ResponseEntity<?> updateTenant(@PathVariable Long id, @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader, @RequestBody Map<String, String> updateRequest) {
         try {
             Tenant updatedTenant = service.updateTenant(id, updateRequest);
             if (updatedTenant == null) {
@@ -189,7 +190,7 @@ public class TenantController {
 
     @Operation(summary = "Delete tenant", description = "Deletes a tenant by ID.")
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteTenant(@PathVariable Long id, @RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<?> deleteTenant(@PathVariable Long id, @RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
         try {
             boolean deleted = service.deleteTenant(id);
             if (!deleted) {

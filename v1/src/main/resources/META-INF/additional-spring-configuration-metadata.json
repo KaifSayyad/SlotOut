@@ -38,5 +38,10 @@
     "name": "personal.emailID",
     "type": "java.lang.String",
     "description": "A description for 'personal.emailID'"
+  },
+  {
+    "name": "SENTRY_AUTH_TOKEN",
+    "type": "java.lang.String",
+    "description": "A description for 'SENTRY_AUTH_TOKEN'"
   }
 ]}
