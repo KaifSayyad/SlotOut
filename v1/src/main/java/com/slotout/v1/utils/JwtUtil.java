@@ -21,7 +21,6 @@ public class JwtUtil {
     public String generateToken(String email, String tenantId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + JWT_EXPIRATION);
-
         return Jwts.builder()
                 .claim("sub", email)
                 .claim("tenantId", tenantId)

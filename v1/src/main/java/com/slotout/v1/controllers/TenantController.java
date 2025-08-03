@@ -31,6 +31,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.Operation;
 
+import io.sentry.Sentry;
+import org.springframework.web.bind.annotation.RequestParam;
+
+
 
 @Tag(name = "Tenant", description = "Tenant management APIs")
 @RestController
@@ -48,12 +52,24 @@ public class TenantController {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @GetMapping("/exception")
+    public String getMethodName() {
+        try{
+            throw new Exception("This is a test exception for Sentry");
+        }catch(Exception e){
+            Sentry.captureException(e);
+            // logger.error("Error at TenantController : ", e);
+        }
+        return new String("Exception route called..");
+    }
+    
     @Operation(summary = "Get all tenants", description = "Returns a list of all tenants.")
     @GetMapping("/all")
     public ResponseEntity<?> getAllTenants() {
         try {
             return ResponseEntity.ok().body(service.getAllTenants());
         } catch (Exception e) {
+            Sentry.captureException(e);
             logger.error("Error at TenantController : route '/all' Error = ", (Object)e.getStackTrace());
             return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Some error occurred, please try again!!"));
         }
@@ -78,6 +94,7 @@ public class TenantController {
             tenantDto.setPassword(hashedPassword);
             
         }catch(Exception e){
+            Sentry.captureException(e);
             logger.error("Error at TenantController : at route '/preRegister' Error = ", (Object)e.getStackTrace());
             return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Some error occured, please try again!!"));
         }
@@ -112,6 +129,7 @@ public class TenantController {
             }
             
         }catch(Exception e){
+            Sentry.captureException(e);
             logger.error("Error at TenantController : route '/verifyOtp' Error = ", (Object)e.getStackTrace());
             return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Some error occured, please try again!!"));
         }
@@ -129,13 +147,20 @@ public class TenantController {
             }
             
             String result = service.authenticateTenant(email, password);
-            if (result.equals("Success")) {
+            if ("Success".equals(result)) {
                 // Get tenant details for JWT generation
                 Tenant tenant = service.getTenantByEmail(email);
                 if (tenant != null) {
                     // Generate JWT token
-                    String token = jwtUtil.generateToken(email, tenant.getId().toString());
-                    
+                    String token;
+                    try{
+                        token = jwtUtil.generateToken(email, tenant.getId().toString());
+                    }catch(Exception e){
+                        Sentry.captureException(e);
+                        logger.error("Error generating JWT token: ", e);
+                        return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Error generating token"));
+                    }
+                    logger.info("Tenant logged in successfully: {}", tenant.getEmail());
                     // Optionally, you can create a new LoginResponseDto to include token if needed
                     Map<String, Object> response = new HashMap<>();
                     response.put("id", tenant.getId());
@@ -151,6 +176,7 @@ public class TenantController {
             }
             
         } catch (Exception e) {
+            Sentry.captureException(e);
             logger.error("Error at TenantController : route '/login' Error = ", (Object)e.getStackTrace());
             return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Some error occurred, please try again!!"));
         }
@@ -167,6 +193,7 @@ public class TenantController {
             TenantResponseDto response = new TenantResponseDto(tenant.getId(), tenant.getName(), tenant.getEmail(), null);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            Sentry.captureException(e);
             logger.error("Error at TenantController : route '/{id}' Error = ", (Object)e.getStackTrace());
             return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Internal server error"));
         }
@@ -183,6 +210,7 @@ public class TenantController {
             TenantResponseDto response = new TenantResponseDto(updatedTenant.getId(), updatedTenant.getName(), updatedTenant.getEmail(), "Tenant updated successfully");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            Sentry.captureException(e);
             logger.error("Error at TenantController : route '/{id}' PATCH Error = ", (Object)e.getStackTrace());
             return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Internal server error"));
         }
@@ -201,6 +229,7 @@ public class TenantController {
             response.put("error", null);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            Sentry.captureException(e);
             logger.error("Error at TenantController : route '/{id}' DELETE Error = ", (Object)e.getStackTrace());
             return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Internal server error"));
         }

@@ -14,6 +14,8 @@ import com.slotout.v1.dto.response.ServiceResponseDto;
 import com.slotout.v1.models.Service;
 import com.slotout.v1.services.ServiceService;
 
+import io.sentry.Sentry;
+
 import java.util.List;
 
 @Tag(name = "Service", description = "Service management APIs")
@@ -35,6 +37,7 @@ public class ServiceController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new ApiResponseDto(null, e.getMessage()));
         } catch (Exception e) {
+            Sentry.captureException(e);
             logger.error("Error in ServiceController.createService: ", e);
             return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Internal server error"));
         }
@@ -50,6 +53,7 @@ public class ServiceController {
                 .toList();
             return ResponseEntity.ok().body(response);
         } catch (Exception e) {
+            Sentry.captureException(e);
             logger.error("Error in ServiceController.getServicesByTenant: ", e);
             ApiResponseDto error = new ApiResponseDto(null, "Internal server error");
             return ResponseEntity.internalServerError().body(error);
@@ -68,6 +72,7 @@ public class ServiceController {
                 return ResponseEntity.badRequest().body(response);
             }
         } catch (Exception e) {
+            Sentry.captureException(e);
             logger.error("Error in ServiceController.updateService: ", e);
             ApiResponseDto error = new ApiResponseDto(null, "Internal server error");
             return ResponseEntity.internalServerError().body(error);
@@ -86,6 +91,7 @@ public class ServiceController {
                 return ResponseEntity.badRequest().body(response);
             }
         } catch (Exception e) {
+            Sentry.captureException(e);
             logger.error("Error in ServiceController.deleteService: ", e);
             ApiResponseDto error = new ApiResponseDto(null, "Internal server error");
             return ResponseEntity.internalServerError().body(error);

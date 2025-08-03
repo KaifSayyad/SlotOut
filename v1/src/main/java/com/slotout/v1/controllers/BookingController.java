@@ -14,6 +14,8 @@ import com.slotout.v1.dto.response.ApiResponseDto;
 import com.slotout.v1.dto.response.BookingResponseDto;
 import com.slotout.v1.services.BookingService;
 
+import io.sentry.Sentry;
+
 import java.util.List;
 
 @Tag(name = "Booking", description = "Booking management APIs")
@@ -35,6 +37,7 @@ public class BookingController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new ApiResponseDto(null, e.getMessage()));
         } catch (Exception e) {
+            Sentry.captureException(e);
             logger.error("Error in BookingController.createBooking: ", e);
             return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Internal server error"));
         }
@@ -49,6 +52,7 @@ public class BookingController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new ApiResponseDto(null, e.getMessage()));
         } catch (Exception e) {
+            Sentry.captureException(e);
             logger.error("Error in BookingController.confirmBooking: ", e);
             return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Internal server error"));
         }
@@ -61,6 +65,7 @@ public class BookingController {
             List<BookingResponseDto> response = bookingService.getBookingsByTenant(tenantId);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            Sentry.captureException(e);
             logger.error("Error in BookingController.getBookingsByTenant: ", e);
             return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Internal server error"));
         }
@@ -75,6 +80,7 @@ public class BookingController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(new ApiResponseDto(null, e.getMessage()));
         } catch (Exception e) {
+            Sentry.captureException(e);
             logger.error("Error in BookingController.cancelBooking: ", e);
             return ResponseEntity.internalServerError().body(new ApiResponseDto(null, "Internal server error"));
         }
